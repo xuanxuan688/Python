@@ -1,0 +1,47 @@
+
+I was working on a CRM deployment and needed to migrate data from the old system to the new one. (EXCEL csv.)
+
+import pandas as pd
+
+# setting file names
+FILE_MASTERS = 'masters.csv'
+FILE_LOOKUP = 'lookup.csv'
+FILE_MASTERS_DUPS = 'masters_dups.csv'
+FILE_OUT = 'output.csv'
+
+
+# reading data from masters file
+df_masters = pd.read_csv(FILE_MASTERS)
+
+
+# sorting records by IDs 
+# note 100002 and 100006 are duplicates
+df_masters.sort_values('ID', ascending=True, inplace=True)
+
+
+# output duplicates to a file for further analysis
+df_dups = df_masters[df_masters.duplicated(keep='first')]
+df_dups.to_csv(FILE_MASTERS_DUPS)
+
+
+# remove duplicates by IDs except for the first occurence
+df_masters.drop_duplicates(subset='ID', keep='first', inplace=True)
+
+
+# reading data from lookup file
+# Country info is stored in this file
+df_lookup = pd.read_csv(FILE_LOOKUP)
+
+
+# df_masters is on left, df_lookup is on right
+# merging (joining) tables by IDs
+# using a left join purposefully to show records without Country info
+df_join_left = pd.merge(df_masters, df_lookup, how="left", on=['ID'])
+
+
+# illustrating how to remove column(s)
+df_join_left.drop(['Name'], axis=1, inplace=True)
+
+
+# output merged data to file
+df_join_left.to_csv(FILE_OUT)
